@@ -27,7 +27,7 @@ async def signup(user: UserSchema.UserCreate):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     return JSONResponse(
-        content=UserSchema.Userout(
+        content=UserSchema.UserOut(
             email=new_user.email, role=new_user.role
         ).model_dump(),
         status_code=status.HTTP_201_CREATED,
@@ -56,4 +56,4 @@ async def get_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @router.get("/dashboard")
 async def dashboard(user: User = Depends(get_current_user)):
-    return UserSchema.Userout(**user.model_dump())
+    return UserSchema.UserOut(**user.model_dump())

@@ -1,13 +1,15 @@
 from fastapi import FastAPI
 
 from config.settings import settings
-from routes import users
+from routes import bugs, projects, users
 from utils.db import init_db
 
 
 def create_app() -> FastAPI:
     app = FastAPI()
     app.include_router(users.router)
+    app.include_router(projects.router)
+
     return app
 
 

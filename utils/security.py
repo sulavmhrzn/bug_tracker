@@ -7,7 +7,6 @@ from jose import JWTError, jwt
 
 from config.settings import settings
 from models.users import User
-from schemas.users import Userout
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/access-token")
 

@@ -25,3 +25,10 @@ class User(Document):
         if not user or not verify_hash_password(user.hashed_password, password):
             return None
         return user
+
+    @classmethod
+    async def has_role(cls, *, email: str, role: str) -> bool:
+        user = await cls.get_user_by_email(email=email)
+        if not user:
+            return False
+        return user.role == role
