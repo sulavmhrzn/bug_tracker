@@ -9,6 +9,7 @@ def create_app() -> FastAPI:
     app = FastAPI()
     app.include_router(users.router)
     app.include_router(projects.router)
+    app.include_router(bugs.router)
 
     return app
 
