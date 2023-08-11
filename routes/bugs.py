@@ -2,7 +2,7 @@ from typing import Literal, Optional
 
 from beanie import PydanticObjectId
 from beanie.operators import In, Push, Set
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
@@ -32,7 +32,6 @@ async def create_bug(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         )
 
-    # check for every user in assigned_to list if they are in the users collection
     if not await User.find_one(In(User.id, bug.assigned_to)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -100,3 +99,21 @@ async def update_bug(
     return JSONResponse(
         status_code=status.HTTP_200_OK, content="Bug updated successfully"
     )
+
+
+@router.delete("/{bug_id}")
+async def delete_bug(bug_id: PydanticObjectId, user: User = Depends(get_current_user)):
+    bug = await Bug.get(bug_id)
+    if not bug:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Bug ticket not found."
+        )
+    is_created_by = bug.created_by == user.id
+    if not is_created_by:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are not authorzied to perforrm this action",
+        )
+
+    await bug.delete()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
