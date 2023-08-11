@@ -19,6 +19,6 @@ class Bug(Document):
     @classmethod
     async def is_assigned_to(
         cls, *, bug_id: PydanticObjectId, user_id: PydanticObjectId
-    ):
+    ) -> bool:
         result = await Bug.find_one(In(Bug.assigned_to, [user_id]), Bug.id == bug_id)
         return result or False

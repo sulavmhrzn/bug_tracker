@@ -11,7 +11,7 @@ from models.users import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/access-token")
 
 
-def create_access_token(sub: str, expire_time_delta: Optional[datetime] = None):
+def create_access_token(sub: str, expire_time_delta: Optional[datetime] = None) -> str:
     if expire_time_delta:
         expire = datetime.utcnow() + expire_time_delta
     else:
