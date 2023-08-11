@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import Optional
 
 from beanie import PydanticObjectId
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectBase(BaseModel):
@@ -12,6 +13,11 @@ class ProjectBase(BaseModel):
 class ProjectCreate(ProjectBase):
     created_by: PydanticObjectId
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
 
 
 class ProjectOut(ProjectBase):
