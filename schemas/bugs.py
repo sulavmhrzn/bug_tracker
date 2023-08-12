@@ -4,6 +4,9 @@ from typing import Literal, Optional
 from beanie import PydanticObjectId
 from pydantic import BaseModel, Field
 
+from .projects import ProjectOut
+from .users import UserOut
+
 
 class BugsBase(BaseModel):
     title: str
@@ -36,3 +39,12 @@ class BugInDBCreate(BugInDBBase):
 
 class BugInDBOut(BugInDBBase):
     id: PydanticObjectId
+
+
+class BugDetailOut(BaseModel):
+    title: str
+    description: str
+    severity: Literal["low", "medium", "high"]
+    status: Literal["open", "closed", "underdevelopment"]
+    project: list[ProjectOut]
+    assigned_to: list[UserOut]

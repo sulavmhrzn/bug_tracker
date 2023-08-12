@@ -21,8 +21,9 @@ class ProjectUpdate(BaseModel):
 
 
 class ProjectOut(ProjectBase):
-    id: PydanticObjectId
+    id: PydanticObjectId = Field(..., alias="_id")
     created_at: datetime
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ProjectInDBBase(ProjectBase):

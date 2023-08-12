@@ -44,7 +44,7 @@ async def create_bug(
     return JSONResponse(content=json_encoded, status_code=status.HTTP_201_CREATED)
 
 
-@router.get("/{project_id}")
+@router.get("/projects/{project_id}")
 async def get_bugs(
     project_id: PydanticObjectId,
     severity: Optional[Literal["low", "medium", "high"]] = None,
@@ -117,3 +117,41 @@ async def delete_bug(bug_id: PydanticObjectId, user: User = Depends(get_current_
 
     await bug.delete()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{bug_id}")
+async def get_bug(
+    bug_id: PydanticObjectId,
+    user: User = Depends(get_current_user),
+):
+    bug = (
+        await Bug.find(Bug.id == bug_id)
+        .aggregate(
+            [
+                {
+                    "$lookup": {
+                        "from": "User",
+                        "localField": "assigned_to",
+                        "foreignField": "_id",
+                        "as": "assigned_to",
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "Project",
+                        "localField": "project_id",
+                        "foreignField": "_id",
+                        "as": "project",
+                    }
+                },
+            ],
+            projection_model=BugSchema.BugDetailOut,
+        )
+        .to_list()
+    )
+
+    if not bug:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found"
+        )
+    return bug[0]

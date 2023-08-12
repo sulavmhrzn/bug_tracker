@@ -28,6 +28,7 @@ async def create_project(
     )
 
     project_created = await Project(**project_obj.model_dump()).insert()
+
     json_encoded = jsonable_encoder(
         ProjectSchema.ProjectOut(**project_created.model_dump())
     )
@@ -48,11 +49,13 @@ async def get_projects(user: UserOut = Depends(get_current_user)):
             detail="You are not authorized.",
         )
     user = await User.get_user_by_email(email=user.email)
-    result = Project.find_many(Project.created_by == user.id)
-    projects = []
-    async for project in result:
-        projects.append(ProjectSchema.ProjectOut(**project.model_dump()))
-    return projects
+    result = (
+        await Project.find_many(Project.created_by == user.id)
+        .project(ProjectSchema.ProjectOut)
+        .to_list()
+    )
+
+    return result
 
 
 @router.put("/{project_id}")
@@ -101,3 +104,27 @@ async def delete_project(project_id: str, user: User = Depends(get_current_user)
         )
     await project_obj.delete()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{project_id}")
+async def get_project(
+    project_id: PydanticObjectId, user: User = Depends(get_current_user)
+):
+    is_manager = await User.has_role(email=user.email, role="manager")
+
+    if not is_manager:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are not authorized.",
+        )
+
+    project = (
+        await Project.find(Project.id == project_id)
+        .project(ProjectSchema.ProjectOut)
+        .first_or_none()
+    )
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found."
+        )
+    return project
