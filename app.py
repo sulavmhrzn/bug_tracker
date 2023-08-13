@@ -6,7 +6,11 @@ from utils.db import init_db
 
 
 def create_app() -> FastAPI:
-    app = FastAPI()
+    app = FastAPI(
+        title="Bug Tracker API",
+        version="0.1.0",
+        description="API for bug tracker frontend",
+    )
     app.include_router(users.router)
     app.include_router(projects.router)
     app.include_router(bugs.router)

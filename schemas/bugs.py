@@ -38,7 +38,7 @@ class BugInDBCreate(BugInDBBase):
 
 
 class BugInDBOut(BugInDBBase):
-    id: PydanticObjectId
+    id: PydanticObjectId = Field(..., alias="_id")
 
 
 class BugDetailOut(BaseModel):

@@ -1,8 +1,8 @@
 from typing import Literal, Optional
 
 from beanie import PydanticObjectId
-from beanie.operators import In, Push, Set
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from beanie.operators import In
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
@@ -12,13 +12,20 @@ from models.users import User
 from schemas import bugs as BugSchema
 from schemas import users as UserSchema
 from utils.security import get_current_user
+from utils.telegram_notification import send_message
 
 router = APIRouter(prefix="/bugs", tags=["Bugs"])
 
 
+def send_message_to_telegram(text: str):
+    send_message(text=text)
+
+
 @router.post("/")
 async def create_bug(
-    bug: BugSchema.BugCreate, user: UserSchema.UserOut = Depends(get_current_user)
+    bug: BugSchema.BugCreate,
+    background_tasks: BackgroundTasks,
+    user: UserSchema.UserOut = Depends(get_current_user),
 ):
     is_manager = await User.has_role(email=user.email, role="manager")
     if not is_manager:
@@ -37,10 +44,13 @@ async def create_bug(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found in the database",
         )
-
     b = BugSchema.BugInDBCreate(**bug.model_dump(), created_by=user.id)
     await Bug(**b.model_dump()).insert()
+
     json_encoded = jsonable_encoder(b)
+
+    format_message = f"**New bug ticket created:**\nTitle: {b.title}\nDescription: {b.description}\nSeverity: {b.severity}\nStatus: {b.status}\nCreated by: {str(b.created_by)}\nProject ID: {str(b.project_id)}"
+    background_tasks.add_task(send_message_to_telegram, format_message)
     return JSONResponse(content=json_encoded, status_code=status.HTTP_201_CREATED)
 
 
@@ -58,9 +68,8 @@ async def get_bugs(
         result = result.find(Bug.severity == severity)
     if status:
         result = result.find(Bug.status == status)
+    bugs = await result.project(BugSchema.BugInDBOut).to_list()
 
-    async for bug in result:
-        bugs.append(BugSchema.BugInDBOut(**bug.model_dump()))
     return bugs
 
 
@@ -68,6 +77,7 @@ async def get_bugs(
 async def update_bug(
     bug_id: PydanticObjectId,
     bug: BugSchema.BugUpdate,
+    background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user),
 ):
     bug_obj = await Bug.get(bug_id)
@@ -92,10 +102,11 @@ async def update_bug(
             detail="One or more users in assigned_to list do not exist.",
         )
 
-    await bug_obj.set(
+    b = await bug_obj.set(
         bug.model_dump(exclude_defaults=True, exclude_unset=True, exclude_none=True)
     )
-
+    format_message = f"**Bug ticket updated:**\nTitle: {b.title}\nDescription: {b.description}\nSeverity: {b.severity}\nStatus: {b.status}\nCreated by: {str(b.created_by)}\nProject ID: {str(b.project_id)}"
+    background_tasks.add_task(send_message_to_telegram, format_message)
     return JSONResponse(
         status_code=status.HTTP_200_OK, content="Bug updated successfully"
     )
