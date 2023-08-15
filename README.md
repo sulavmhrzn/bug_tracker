@@ -17,6 +17,7 @@ Routes /dashboard, /projects, and /bugs are protected by JWT token authenticatio
 | POST          | /signup   | create a new user account
 | POST          | /access-token   | Obtain an access token
 | GET          | /dashboard   | Retriever user dashboard information
+![users](https://raw.githubusercontent.com/sulavmhrzn/bug_tracker/main/screenshots/users.png)
 
 ### Projects
 **prefix: /projects**
@@ -27,6 +28,7 @@ Routes /dashboard, /projects, and /bugs are protected by JWT token authenticatio
 | GET          | /{project_id}   | Retrieve project details
 | DELETE          | /{project_id}   | Delete a project
 | PUT          | /{project_id}   | Update project details
+![users](https://raw.githubusercontent.com/sulavmhrzn/bug_tracker/main/screenshots/projects.png)
 
 ### Bugs
 **prefix: /bugs**
@@ -37,4 +39,5 @@ Routes /dashboard, /projects, and /bugs are protected by JWT token authenticatio
 | GET          | /{bug_id}   | Retrieve bug details
 | DELETE          | /{bug_id}   | Delete a bug
 | PUT          | /{project_id}   | Update bug details
+![users](https://raw.githubusercontent.com/sulavmhrzn/bug_tracker/main/screenshots/bugs.png)
 
